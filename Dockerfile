@@ -47,8 +47,8 @@ RUN apt update && \
 
 # Additional deps
 RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv \
-     uv pip install torch torchvision torchaudio triton --index-url https://download.pytorch.org/whl/nightly/cu130 && \
-     uv pip install nvidia-nvshmem-cu13 "apache-tvm-ffi<0.2" filelock pynvml requests tqdm
+     uv pip install torch==2.12.0 torchvision==0.27.0 torchaudio==2.12.0 triton \
+     && uv pip install nvidia-nvshmem-cu13 "apache-tvm-ffi<0.2" filelock pynvml requests tqdm
 
 # Configure Ccache for CUDA/C++
 ENV PATH=/usr/lib/ccache:$PATH
@@ -82,7 +82,9 @@ FROM base AS flashinfer-builder
 ARG FLASHINFER_CUDA_ARCH_LIST="12.1a"
 ENV FLASHINFER_CUDA_ARCH_LIST=${FLASHINFER_CUDA_ARCH_LIST}
 WORKDIR $VLLM_BASE_DIR
-ARG FLASHINFER_REF=main
+
+# Fixed release version: v0.6.7 (SHA: 56ed54098411946525da17eca2bcfd7ec72a515e)
+ARG FLASHINFER_REF=v0.6.7
 
 # --- CACHE BUSTER ---
 # Change this argument to force a re-download of FlashInfer
@@ -167,8 +169,8 @@ WORKDIR $VLLM_BASE_DIR
 # --- VLLM SOURCE CACHE BUSTER ---
 ARG CACHEBUST_VLLM=1
 
-# Git reference (branch, tag, or SHA) to checkout
-ARG VLLM_REF=main
+# Fixed release version: v0.19.0 (SHA: 2a69949bdadf0e8942b7a1619b229cb475beef20)
+ARG VLLM_REF=v0.19.0
 
 # Smart Git Clone (Fetch changes instead of full re-clone)
 RUN --mount=type=cache,id=repo-cache,target=/repo-cache \
@@ -308,8 +310,8 @@ ARG PRE_TRANSFORMERS=0
 
 # Install deps
 RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv \
-     uv pip install torch torchvision torchaudio triton --index-url https://download.pytorch.org/whl/nightly/cu130 && \
-     uv pip install nvidia-nvshmem-cu13 "apache-tvm-ffi<0.2"
+     uv pip install torch==2.12.0 torchvision==0.27.0 torchaudio==2.12.0 triton \
+     && uv pip install nvidia-nvshmem-cu13 "apache-tvm-ffi<0.2"
 
 # Install wheels from host ./wheels/ (bind-mounted from build context — no layer bloat)
 # With --tf5: override vLLM's transformers<5 constraint to get transformers>=5
