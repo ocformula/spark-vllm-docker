@@ -220,7 +220,7 @@ RUN if [ -f patches/vllm/35568.patch ]; then \
             echo "PR 35568 already applied, skipping."; \
         else \
             echo "Applying PR 35568..."; \
-            git apply -v --exclude="tests/*" patches/vllm/35568.patch || echo "Failed to apply PR 35568, skipping."; \
+            git apply -v patches/vllm/35568.patch || echo "Failed to apply PR 35568, skipping."; \
         fi; \
     fi
 
@@ -248,9 +248,9 @@ RUN if [ -f patches/vllm/40191.patch ]; then \
 RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv \
     python3 use_existing_torch.py && \
     sed -i "/flashinfer/d" requirements/cuda.txt && \
-    sed -i '/^triton\b/d' requirements/test/cuda.txt && \
-    sed -i '/^fastsafetensors\b/d' requirements/test/cuda.txt && \
-    uv pip install -r requirements/build/cuda.txt
+    sed -i '/^triton\b/d' requirements/test.txt && \
+    sed -i '/^fastsafetensors\b/d' requirements/test.txt && \
+    uv pip install -r requirements/build.txt
 
 # Apply Patches
 # TEMPORARY PATCH for fastsafetensors loading in cluster setup - tracking https://github.com/vllm-project/vllm/issues/34180
