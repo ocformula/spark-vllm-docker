@@ -73,8 +73,10 @@ ENV TRITON_PTXAS_PATH=/usr/local/cuda/bin/ptxas
 WORKDIR $VLLM_BASE_DIR
 
 # Build NCCL with mesh support (TODO: only do it if arch is 12.1) - artifacts will be in /workspace/nccl/build/pkg/deb
-RUN git clone -b dgxspark-3node-ring https://github.com/zyang-dev/nccl.git && \
-    cd nccl && make -j ${BUILD_JOBS} src.build NVCC_GENCODE="-gencode=arch=compute_121,code=sm_121" && \
+ARG NCCL_REF=fab1850acd902672d79ca81c2e7fb8e1848c208c
+RUN git clone https://github.com/zyang-dev/nccl.git && \
+    cd nccl && git checkout ${NCCL_REF} && \
+    make -j ${BUILD_JOBS} src.build NVCC_GENCODE="-gencode=arch=compute_121,code=sm_121" && \
     make pkg.debian.build && apt install -y --no-install-recommends --allow-downgrades ./build/pkg/deb/*.deb
 
 # =========================================================
@@ -211,35 +213,31 @@ RUN if [ -n "$VLLM_PRS" ]; then \
         done; \
     fi
 
-# TEMPORARY PATCH for broken FP8 kernels - https://github.com/vllm-project/vllm/pull/35568
-RUN curl -fsL https://patch-diff.githubusercontent.com/raw/vllm-project/vllm/pull/35568.diff -o pr35568.diff \
-    && if git apply --reverse --check pr35568.diff 2>/dev/null; then \
+# TEMPORARY PATCHES
+COPY vllm_pr35568.patch pr35568.diff
+COPY vllm_pr39959.patch pr39959.diff
+COPY vllm_pr40191.patch pr40191.diff
+
+RUN if git apply --reverse --check pr35568.diff 2>/dev/null; then \
          echo "PR 35568 already applied, skipping."; \
        else \
          echo "Applying PR 35568..."; \
          git apply -v --exclude="tests/*" pr35568.diff; \
-       fi \
-    && rm pr35568.diff
+       fi && rm pr35568.diff
 
-# TEMPORARY PATCH to re-enable Flashinfer 0.6.8 - https://github.com/vllm-project/vllm/pull/39959
-RUN curl -fsL https://patch-diff.githubusercontent.com/raw/vllm-project/vllm/pull/39959.diff -o pr39959.diff \
-    && if git apply --reverse --check pr39959.diff 2>/dev/null; then \
+RUN if git apply --reverse --check pr39959.diff 2>/dev/null; then \
          echo "PR 39959 already applied, skipping."; \
        else \
          echo "Applying PR 39959..."; \
          git apply -v pr39959.diff; \
-       fi \
-    && rm pr39959.diff
+       fi && rm pr39959.diff
 
-# TEMPORARY PATCH to fix torch bindings - https://github.com/vllm-project/vllm/pull/40191
-RUN curl -fsL https://patch-diff.githubusercontent.com/raw/vllm-project/vllm/pull/40191.diff -o pr40191.diff \
-    && if git apply --reverse --check pr40191.diff 2>/dev/null; then \
+RUN if git apply --reverse --check pr40191.diff 2>/dev/null; then \
          echo "PR 40191 already applied, skipping."; \
        else \
          echo "Applying PR 40191..."; \
          git apply -v pr40191.diff; \
-       fi \
-    && rm pr40191.diff
+       fi && rm pr40191.diff
 
 # Prepare build requirements
 RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv \

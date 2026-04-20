@@ -463,6 +463,26 @@ fi
 # Ensure wheels directory exists
 mkdir -p ./wheels
 
+# =====================================================
+# Resolve SHAs for reproducibility
+# =====================================================
+echo "Resolving repository SHAs for reproducibility..."
+
+if [ "$VLLM_REF" = "main" ]; then
+    VLLM_RESOLVED_SHA=$(git ls-remote https://github.com/vllm-project/vllm.git main | awk '{print $1}')
+    echo "  vLLM (main) -> $VLLM_RESOLVED_SHA"
+    VLLM_REF=$VLLM_RESOLVED_SHA
+fi
+
+if [ "$FLASHINFER_REF" = "main" ]; then
+    FLASHINFER_RESOLVED_SHA=$(git ls-remote https://github.com/flashinfer-ai/flashinfer.git main | awk '{print $1}')
+    echo "  FlashInfer (main) -> $FLASHINFER_RESOLVED_SHA"
+    FLASHINFER_REF=$FLASHINFER_RESOLVED_SHA
+fi
+
+# Fixed NCCL SHA matching Dockerfile
+NCCL_REF="fab1850acd902672d79ca81c2e7fb8e1848c208c"
+
 # Common build flags used across all non-mxfp4 sub-builds
 COMMON_BUILD_FLAGS=()
 if [ "$FULL_LOG" = true ]; then
@@ -471,6 +491,7 @@ fi
 COMMON_BUILD_FLAGS+=("--build-arg" "BUILD_JOBS=$BUILD_JOBS")
 COMMON_BUILD_FLAGS+=("--build-arg" "TORCH_CUDA_ARCH_LIST=$GPU_ARCH_LIST")
 COMMON_BUILD_FLAGS+=("--build-arg" "FLASHINFER_CUDA_ARCH_LIST=$GPU_ARCH_LIST")
+COMMON_BUILD_FLAGS+=("--build-arg" "NCCL_REF=$NCCL_REF")
 if [ -n "$NETWORK_ARG" ]; then
     COMMON_BUILD_FLAGS+=("--network" "$NETWORK_ARG")
 fi
