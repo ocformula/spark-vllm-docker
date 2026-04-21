@@ -13,10 +13,11 @@ COPY_HOSTS=()
 COPY_TO_FLAG=false
 SSH_USER="$USER"
 NO_BUILD=false
-VLLM_REF="main"
+VLLM_REF="38fa87cacadc73aec9b28fea52fa70a31070cec4"
 VLLM_REF_SET=false
-FLASHINFER_REF="main"
+FLASHINFER_REF="855939764f69b4ad14d43b7440a939947f2f7330"
 FLASHINFER_REF_SET=false
+NCCL_REF="fab1850acd902672d79ca81c2e7fb8e1848c208c"
 TMP_IMAGE=""
 PARALLEL_COPY=false
 EXP_MXFP4=false
@@ -460,28 +461,20 @@ if [[ "$CLEANUP_MODE" == "true" ]]; then
     echo "Cleanup complete."
 fi
 
-# Ensure wheels directory exists
+# Ensure wheels directory exists and is CLEAN for a fresh build
+if [ "$NO_BUILD" = false ]; then
+    echo "Mandatory cleanup of ./wheels directory for reproducible build..."
+    rm -rf ./wheels/*.whl ./wheels/.*-commit
+fi
 mkdir -p ./wheels
 
 # =====================================================
-# Resolve SHAs for reproducibility
+# Hardcoded SHAs for reproducibility
 # =====================================================
-echo "Resolving repository SHAs for reproducibility..."
-
-if [ "$VLLM_REF" = "main" ]; then
-    VLLM_RESOLVED_SHA=$(git ls-remote https://github.com/vllm-project/vllm.git main | awk '{print $1}')
-    echo "  vLLM (main) -> $VLLM_RESOLVED_SHA"
-    VLLM_REF=$VLLM_RESOLVED_SHA
-fi
-
-if [ "$FLASHINFER_REF" = "main" ]; then
-    FLASHINFER_RESOLVED_SHA=$(git ls-remote https://github.com/flashinfer-ai/flashinfer.git main | awk '{print $1}')
-    echo "  FlashInfer (main) -> $FLASHINFER_RESOLVED_SHA"
-    FLASHINFER_REF=$FLASHINFER_RESOLVED_SHA
-fi
-
-# Fixed NCCL SHA matching Dockerfile
-NCCL_REF="fab1850acd902672d79ca81c2e7fb8e1848c208c"
+echo "Using hardcoded repository SHAs:"
+echo "  vLLM:       $VLLM_REF"
+echo "  FlashInfer: $FLASHINFER_REF"
+echo "  NCCL:       $NCCL_REF"
 
 # Common build flags used across all non-mxfp4 sub-builds
 COMMON_BUILD_FLAGS=()
