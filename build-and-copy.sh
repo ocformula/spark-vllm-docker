@@ -13,9 +13,9 @@ COPY_HOSTS=()
 COPY_TO_FLAG=false
 SSH_USER="$USER"
 NO_BUILD=false
-VLLM_REF="main"
+VLLM_REF="6097afb9bdf9bf59fec70c04b12ab355daf07b23"
 VLLM_REF_SET=false
-FLASHINFER_REF="main"
+FLASHINFER_REF="8a49f9a242695fed9173cd5b19da45c9bd316503"
 FLASHINFER_REF_SET=false
 TMP_IMAGE=""
 PARALLEL_COPY=false
@@ -462,6 +462,13 @@ fi
 
 # Ensure wheels directory exists
 mkdir -p ./wheels
+
+# =====================================================
+# Hardcoded SHAs for reproducibility
+# =====================================================
+echo "Using hardcoded repository SHAs:"
+echo "  vLLM:       $VLLM_REF"
+echo "  FlashInfer: $FLASHINFER_REF"
 
 # Common build flags used across all non-mxfp4 sub-builds
 COMMON_BUILD_FLAGS=()
