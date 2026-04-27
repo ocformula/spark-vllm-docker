@@ -222,8 +222,8 @@ RUN if [ -n "$VLLM_PRS" ]; then \
     fi
 
 # TEMPORARY PATCH for broken FP8 kernels - https://github.com/vllm-project/vllm/pull/35568
-RUN curl -fsL https://patch-diff.githubusercontent.com/raw/vllm-project/vllm/pull/35568.diff -o pr35568.diff \
-    && if git apply --reverse --check pr35568.diff 2>/dev/null; then \
+COPY patches/pr35568.diff .
+RUN if git apply --reverse --check pr35568.diff 2>/dev/null; then \
          echo "PR 35568 already applied, skipping."; \
        else \
          echo "Applying PR 35568..."; \
