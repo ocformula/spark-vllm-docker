@@ -463,6 +463,13 @@ fi
 # Ensure wheels directory exists
 mkdir -p ./wheels
 
+# =====================================================
+# Pinned SHAs for reproducible builds
+# =====================================================
+echo "Pinned repository SHAs:"
+echo "  vLLM:       $VLLM_REF (releases/v0.20.0)"
+echo "  FlashInfer: $FLASHINFER_REF (release-v0.6.9)"
+
 # Common build flags used across all non-mxfp4 sub-builds
 COMMON_BUILD_FLAGS=()
 if [ "$FULL_LOG" = true ]; then
